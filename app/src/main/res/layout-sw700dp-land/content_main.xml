@@ -12,7 +12,8 @@
       android:layout_height="match_parent"
       android:name="com.deitel.flagquiz.SettingsActivityFragment"
       android:id="@+id/settingsActivityFragment"
-      android:layout_weight="1"/>
+      android:layout_weight="1"
+       tools:layout="@layout/fragment_settings" />
 
    <fragment
       android:layout_width="0dp"
