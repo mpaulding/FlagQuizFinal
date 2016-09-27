@@ -3,7 +3,7 @@
           xmlns:app="http://schemas.android.com/apk/res-auto"
           app:layout_behavior="@string/appbar_scrolling_view_behavior"
           android:id="@+id/quizFragment"
-          android:name="com.deitel.flagquiz.MainActivityFragment"
+          android:name="edu.orangecoastcollege.flagquiz.QuizActivityFragment"
           android:layout_width="match_parent"
           android:layout_height="match_parent"
-          tools:layout="@layout/fragment_main"/>
+          tools:layout="@layout/fragment_quiz"/>

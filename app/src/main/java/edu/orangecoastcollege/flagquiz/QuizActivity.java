@@ -1,7 +1,7 @@
 // MainActivity.java
-// Hosts the MainActivityFragment on a phone and both the
-// MainActivityFragment and SettingsActivityFragment on a tablet
-package com.deitel.flagquiz;
+// Hosts the QuizActivityFragment on a phone and both the
+// QuizActivityFragment and SettingsActivityFragment on a tablet
+package edu.orangecoastcollege.flagquiz;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,9 +16,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.deitel.flagquiz.R;
+
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity {
+public class QuizActivity extends AppCompatActivity {
    // keys for reading data from SharedPreferences
    public static final String CHOICES = "pref_numberOfChoices";
    public static final String REGIONS = "pref_regionsToInclude";
@@ -26,7 +28,16 @@ public class MainActivity extends AppCompatActivity {
    private boolean phoneDevice = true; // used to force portrait mode
    private boolean preferencesChanged = true; // did preferences change?
 
-   // configure the MainActivity
+
+    /**
+     * onCreate generates the appropriate layout to inflate, depending on the
+     * screen size.  If the device is large or x-large, it will load the content_main.xml
+     * (sw700dp-land) which includes both the fragment_quiz.xml and fragment_settings.xml.
+     * Otherwise, it just inflates the standard content_main.xml with the fragment_quiz.
+     *
+     * All default preferences are set using the preferences.xml file.
+     * @param savedInstanceState The saved state to restore (not being used)
+     */
    @Override
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
@@ -57,15 +68,20 @@ public class MainActivity extends AppCompatActivity {
             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
    }
 
-   // called after onCreate completes execution
+   /**
+    * onStart is called after onCreate completes execution.
+    * This method will update the number of guess rows to display
+    * and the regions to choose flags from, then resets the quiz
+    * with the new preferences.
+    */
    @Override
    protected void onStart() {
       super.onStart();
 
       if (preferencesChanged) {
          // now that the default preferences have been set,
-         // initialize MainActivityFragment and start the quiz
-         MainActivityFragment quizFragment = (MainActivityFragment)
+         // initialize QuizActivityFragment and start the quiz
+         QuizActivityFragment quizFragment = (QuizActivityFragment)
             getSupportFragmentManager().findFragmentById(
                R.id.quizFragment);
          quizFragment.updateGuessRows(
@@ -77,7 +93,12 @@ public class MainActivity extends AppCompatActivity {
       }
    }
 
-   // show menu if app is running on a phone or a portrait-oriented tablet
+   /**
+    * Shows the settings menu if the app is running on a phone or a portrait-oriented
+    * tablet only.  (Large screen sizes include the settings fragment in the layout)
+    * @param menu The settings menu.
+    * @return True if the settings menu was inflated, false otherwise.
+     */
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
       // get the device's current orientation
@@ -93,7 +114,14 @@ public class MainActivity extends AppCompatActivity {
          return false;
    }
 
-   // displays the SettingsActivity when running on a phone
+   /**
+    * Displays the SettingsActivity when running on a phone or portrait-oriented
+    * tablet.  Starts the activity by use of an Intent (no data passed because the
+    * shared preferences, preferences.xml, has all data necessary)
+    *
+    * @param item The menu item.
+    * @return True if an option item was selected.
+     */
    @Override
    public boolean onOptionsItemSelected(MenuItem item) {
       Intent preferencesIntent = new Intent(this, SettingsActivity.class);
@@ -101,7 +129,12 @@ public class MainActivity extends AppCompatActivity {
       return super.onOptionsItemSelected(item);
    }
 
-   // listener for changes to the app's SharedPreferences
+   /**
+    * Listener to handle changes in the app's shared preferences (preferences.xml).
+    *
+    * If either the guess options or regions are changed, the quiz will restart with the
+    * new settings.
+    */
    private OnSharedPreferenceChangeListener preferencesChangeListener =
       new OnSharedPreferenceChangeListener() {
          // called when the user changes the app's preferences
@@ -110,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences sharedPreferences, String key) {
             preferencesChanged = true; // user changed app setting
 
-            MainActivityFragment quizFragment = (MainActivityFragment)
+            QuizActivityFragment quizFragment = (QuizActivityFragment)
                getSupportFragmentManager().findFragmentById(
                   R.id.quizFragment);
 
@@ -134,31 +167,16 @@ public class MainActivity extends AppCompatActivity {
                   editor.putStringSet(REGIONS, regions);
                   editor.apply();
 
-                  Toast.makeText(MainActivity.this,
+                  Toast.makeText(QuizActivity.this,
                      R.string.default_region_message,
                      Toast.LENGTH_SHORT).show();
                }
             }
 
-            Toast.makeText(MainActivity.this,
+            Toast.makeText(QuizActivity.this,
                R.string.restarting_quiz,
                Toast.LENGTH_SHORT).show();
          }
       };
 }
 
-
-/*************************************************************************
- * (C) Copyright 1992-2016 by Deitel & Associates, Inc. and               *
- * Pearson Education, Inc. All Rights Reserved.                           *
- *                                                                        *
- * DISCLAIMER: The authors and publisher of this book have used their     *
- * best efforts in preparing the book. These efforts include the          *
- * development, research, and testing of the theories and programs        *
- * to determine their effectiveness. The authors and publisher make       *
- * no warranty of any kind, expressed or implied, with regard to these    *
- * programs or to the documentation contained in these books. The authors *
- * and publisher shall not be liable in any event for incidental or       *
- * consequential damages in connection with, or arising out of, the       *
- * furnishing, performance, or use of these programs.                     *
- *************************************************************************/

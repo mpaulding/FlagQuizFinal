@@ -1,4 +1,4 @@
-package com.deitel.flagquiz;
+package edu.deitel.flagquiz;
 
 import org.junit.Test;
 

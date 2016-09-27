@@ -1,17 +1,7 @@
 // MainActivityFragment.java
 // Contains the Flag Quiz logic
-package com.deitel.flagquiz;
+package edu.orangecoastcollege.flagquiz;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -26,16 +16,28 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class MainActivityFragment extends Fragment {
+import com.deitel.flagquiz.R;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * QuizActivityFragment contains the Flag Quiz logic (correct/incorrect/statistics).
+ * It also handles the delay of guessing correctly, so user can see "Correct!" message
+ * before the next flag is displayed.
+ */
+public class QuizActivityFragment extends Fragment {
    // String used when logging error messages
    private static final String TAG = "FlagQuiz Activity";
 
@@ -50,35 +52,33 @@ public class MainActivityFragment extends Fragment {
    private int guessRows; // number of rows displaying guess Buttons
    private SecureRandom random; // used to randomize the quiz
    private Handler handler; // used to delay loading next flag
-   private Animation shakeAnimation; // animation for incorrect guess
 
-   private LinearLayout quizLinearLayout; // layout that contains the quiz
+
    private TextView questionNumberTextView; // shows current question #
    private ImageView flagImageView; // displays a flag
    private LinearLayout[] guessLinearLayouts; // rows of answer Buttons
    private TextView answerTextView; // displays correct answer
 
-   // configures the MainActivityFragment when its View is created
+   /**
+    * Configures the QuizActivityFragment when its View is created.
+    * @param inflater The layout inflater
+    * @param container The view group contain in which the fragment resides
+    * @param savedInstanceState Any saved state to restore in this fragment
+     * @return
+     */
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
       super.onCreateView(inflater, container, savedInstanceState);
       View view =
-         inflater.inflate(R.layout.fragment_main, container, false);
+         inflater.inflate(R.layout.fragment_quiz, container, false);
 
       fileNameList = new ArrayList<>();
       quizCountriesList = new ArrayList<>();
       random = new SecureRandom();
       handler = new Handler();
 
-      // load the shake animation that's used for incorrect answers
-      shakeAnimation = AnimationUtils.loadAnimation(getActivity(),
-         R.anim.incorrect_shake);
-      shakeAnimation.setRepeatCount(3); // animation repeats 3 times
-
       // get references to GUI components
-      quizLinearLayout =
-         (LinearLayout) view.findViewById(R.id.quizLinearLayout);
       questionNumberTextView =
          (TextView) view.findViewById(R.id.questionNumberTextView);
       flagImageView = (ImageView) view.findViewById(R.id.flagImageView);
@@ -107,11 +107,15 @@ public class MainActivityFragment extends Fragment {
       return view; // return the fragment's view for display
    }
 
-   // update guessRows based on value in SharedPreferences
+   /**
+    * updateGuessRows is called from QuizActivity when the app is launched and each time
+    * the user changes the number of guess buttons to display with each flag.
+    * @param sharedPreferences The shared preferences from preferences.xml.
+     */
    public void updateGuessRows(SharedPreferences sharedPreferences) {
       // get the number of guess buttons that should be displayed
       String choices =
-         sharedPreferences.getString(MainActivity.CHOICES, null);
+         sharedPreferences.getString(QuizActivity.CHOICES, null);
       guessRows = Integer.parseInt(choices) / 2;
 
       // hide all quess button LinearLayouts
@@ -123,13 +127,18 @@ public class MainActivityFragment extends Fragment {
          guessLinearLayouts[row].setVisibility(View.VISIBLE);
    }
 
-   // update world regions for quiz based on values in SharedPreferences
+   /**
+    * Updates the world regions for the quiz based on values in SharedPreferences.
+    * @param sharedPreferences The shared preferences defined in preferences.xml.
+     */
    public void updateRegions(SharedPreferences sharedPreferences) {
       regionsSet =
-         sharedPreferences.getStringSet(MainActivity.REGIONS, null);
+         sharedPreferences.getStringSet(QuizActivity.REGIONS, null);
    }
 
-   // set up and start the next quiz
+   /**
+    * Configure and start up a new quiz based on the settings.
+    */
    public void resetQuiz() {
       // use AssetManager to get image file names for enabled regions
       AssetManager assets = getActivity().getAssets();
@@ -173,7 +182,9 @@ public class MainActivityFragment extends Fragment {
       loadNextFlag(); // start the quiz by loading the first flag
    }
 
-   // after the user guesses a correct flag, load the next flag
+   /**
+    * After user guesses a flag correctly, load the next flag.
+    */
    private void loadNextFlag() {
       // get file name of the next flag and remove it from the list
       String nextImage = quizCountriesList.remove(0);
@@ -198,7 +209,6 @@ public class MainActivityFragment extends Fragment {
          Drawable flag = Drawable.createFromStream(stream, nextImage);
          flagImageView.setImageDrawable(flag);
 
-         animate(false); // animate the flag onto the screen
       }
       catch (IOException exception) {
          Log.e(TAG, "Error loading " + nextImage, exception);
@@ -240,49 +250,11 @@ public class MainActivityFragment extends Fragment {
       return name.substring(name.indexOf('-') + 1).replace('_', ' ');
    }
 
-   // animates the entire quizLinearLayout on or off screen
-   private void animate(boolean animateOut) {
-      // prevent animation into the the UI for the first flag
-      if (correctAnswers == 0)
-         return;
 
-      // calculate center x and center y
-      int centerX = (quizLinearLayout.getLeft() +
-         quizLinearLayout.getRight()) / 2; // calculate center x
-      int centerY = (quizLinearLayout.getTop() +
-         quizLinearLayout.getBottom()) / 2; // calculate center y
-
-      // calculate animation radius
-      int radius = Math.max(quizLinearLayout.getWidth(),
-         quizLinearLayout.getHeight());
-
-      Animator animator;
-
-      // if the quizLinearLayout should animate out rather than in
-      if (animateOut) {
-         // create circular reveal animation
-         animator = ViewAnimationUtils.createCircularReveal(
-            quizLinearLayout, centerX, centerY, radius, 0);
-         animator.addListener(
-            new AnimatorListenerAdapter() {
-               // called when the animation finishes
-               @Override
-               public void onAnimationEnd(Animator animation) {
-                  loadNextFlag();
-               }
-            }
-         );
-      }
-      else { // if the quizLinearLayout should animate in
-         animator = ViewAnimationUtils.createCircularReveal(
-            quizLinearLayout, centerX, centerY, 0, radius);
-      }
-
-      animator.setDuration(500); // set animation duration to 500 ms
-      animator.start(); // start the animation
-   }
-
-   // called when a guess Button is touched
+   /**
+    * Called when a guess button is clicked.  This listener is used for all buttons
+    * in the flag quiz.
+    */
    private OnClickListener guessButtonListener = new OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -341,13 +313,13 @@ public class MainActivityFragment extends Fragment {
                   new Runnable() {
                      @Override
                      public void run() {
-                        animate(true); // animate the flag off the screen
+                        loadNextFlag();
                      }
                   }, 2000); // 2000 milliseconds for 2-second delay
             }
          }
          else { // answer was incorrect
-            flagImageView.startAnimation(shakeAnimation); // play shake
+
 
             // display "Incorrect!" in red
             answerTextView.setText(R.string.incorrect_answer);
@@ -369,17 +341,3 @@ public class MainActivityFragment extends Fragment {
 }
 
 
-/*************************************************************************
- * (C) Copyright 1992-2016 by Deitel & Associates, Inc. and               *
- * Pearson Education, Inc. All Rights Reserved.                           *
- *                                                                        *
- * DISCLAIMER: The authors and publisher of this book have used their     *
- * best efforts in preparing the book. These efforts include the          *
- * development, research, and testing of the theories and programs        *
- * to determine their effectiveness. The authors and publisher make       *
- * no warranty of any kind, expressed or implied, with regard to these    *
- * programs or to the documentation contained in these books. The authors *
- * and publisher shall not be liable in any event for incidental or       *
- * consequential damages in connection with, or arising out of, the       *
- * furnishing, performance, or use of these programs.                     *
- *************************************************************************/

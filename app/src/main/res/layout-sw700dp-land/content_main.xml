@@ -10,7 +10,7 @@
    <fragment
       android:layout_width="0dp"
       android:layout_height="match_parent"
-      android:name="com.deitel.flagquiz.SettingsActivityFragment"
+      android:name="edu.orangecoastcollege.flagquiz.SettingsActivityFragment"
       android:id="@+id/settingsActivityFragment"
       android:layout_weight="1"
        tools:layout="@layout/fragment_settings" />
@@ -18,8 +18,8 @@
    <fragment
       android:layout_width="0dp"
       android:layout_height="match_parent"
-      android:name="com.deitel.flagquiz.MainActivityFragment"
+      android:name="edu.orangecoastcollege.flagquiz.QuizActivityFragment"
       android:id="@+id/quizFragment"
       android:layout_weight="2"
-      tools:layout="@layout/fragment_main"/>
+      tools:layout="@layout/fragment_quiz"/>
 </LinearLayout>
